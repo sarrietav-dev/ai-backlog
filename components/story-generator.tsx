@@ -1,22 +1,30 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Loader2, Sparkles, Save } from 'lucide-react'
 import { experimental_useObject as useObject } from '@ai-sdk/react'
-import { userStoriesResponseSchema, type UserStoriesResponse } from '@/lib/schemas/user-story'
+import { userStoriesResponseSchema, type UserStoriesResponse, type UserStoryInput } from '@/lib/schemas/user-story'
 import { toast } from 'sonner'
 import type { User } from '@supabase/supabase-js'
 
 interface StoryGeneratorProps {
   user: User | null
+  onGenerationStart?: () => void
+  onStoriesUpdated?: (stories: UserStoryInput[]) => void
+  onGenerationComplete?: () => void
   onStoriesSaved?: () => void
 }
 
-export default function StoryGenerator({ user, onStoriesSaved }: StoryGeneratorProps) {
+export default function StoryGenerator({ 
+  user, 
+  onGenerationStart,
+  onStoriesUpdated,
+  onGenerationComplete,
+  onStoriesSaved 
+}: StoryGeneratorProps) {
   const [prompt, setPrompt] = useState('')
   const [saving, setSaving] = useState(false)
   const [lastGeneratedStories, setLastGeneratedStories] = useState<UserStoriesResponse | null>(null)
@@ -28,6 +36,7 @@ export default function StoryGenerator({ user, onStoriesSaved }: StoryGeneratorP
       if (result) {
         setLastGeneratedStories(result)
         toast.success(`Generated ${result.stories.length} user stories!`)
+        onGenerationComplete?.()
       }
     },
     onError: (error: Error) => {
@@ -36,10 +45,21 @@ export default function StoryGenerator({ user, onStoriesSaved }: StoryGeneratorP
     }
   })
 
+  // Call onStoriesUpdated when object changes during streaming
+  useEffect(() => {
+    if (object?.stories && isLoading) {
+      const validStories = object.stories.filter((story): story is UserStoryInput => 
+        story !== undefined && story.title !== undefined
+      )
+      onStoriesUpdated?.(validStories)
+    }
+  }, [object?.stories, isLoading, onStoriesUpdated])
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!prompt.trim()) return
     
+    onGenerationStart?.()
     submit({ prompt: prompt.trim() })
   }
 
@@ -75,7 +95,7 @@ export default function StoryGenerator({ user, onStoriesSaved }: StoryGeneratorP
     }
   }
 
-  const displayStories = object?.stories || lastGeneratedStories?.stories
+
 
   return (
     <div className="space-y-6">
@@ -145,55 +165,7 @@ export default function StoryGenerator({ user, onStoriesSaved }: StoryGeneratorP
         </Card>
       )}
 
-      {/* Generated Stories Display */}
-      {displayStories && displayStories.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Generated User Stories</h3>
-            <Badge variant="secondary">
-              {displayStories.length} stories
-            </Badge>
-          </div>
-          
-          <div className="grid gap-4">
-            {displayStories.map((story, index: number) => (
-              <Card key={index} className="relative">
-                {!user && (
-                  <div className="absolute -top-2 -right-2">
-                    <Badge variant="outline" className="bg-background">
-                      Sign in to save
-                    </Badge>
-                  </div>
-                )}
-                <CardHeader>
-                  <CardTitle className="text-base">{story?.title}</CardTitle>
-                  <CardDescription>{story?.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-sm">Acceptance Criteria:</h4>
-                    <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                      {story?.acceptanceCriteria?.map((criteria, criteriaIndex: number) => (
-                        <li key={criteriaIndex}>{criteria}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
 
-          {!user && (
-            <Card className="border-dashed">
-              <CardContent className="pt-6 text-center">
-                <p className="text-muted-foreground mb-2">
-                  Sign in to save these stories to your backlog
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
 
       {/* Loading State */}
       {isLoading && (
