@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import StoryGenerator from '@/components/story-generator'
 import EnhancedStoriesTable from '@/components/enhanced-stories-table'
+import KanbanView from '@/components/kanban-view'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Table, Kanban } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 import type { UserStory, Backlog } from '@/lib/database.types'
 import type { UserStoryInput } from '@/lib/schemas/user-story'
@@ -113,15 +116,39 @@ export default function StoryManager({ user, backlog }: StoryManagerProps) {
         onStoriesSaved={handleStoriesSaved}
       />
 
-      {/* Enhanced Stories Table */}
-      <EnhancedStoriesTable 
-        savedStories={savedStories}
-        generatingStories={generatingStories}
-        isGenerating={isGenerating}
-        isGenerationComplete={isGenerationComplete}
-        user={user}
-        backlog={backlog}
-      />
+      {/* Stories Views - Table and Kanban */}
+      <Tabs defaultValue="table" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 max-w-sm">
+          <TabsTrigger value="table" className="gap-2">
+            <Table className="w-4 h-4" />
+            Table View
+          </TabsTrigger>
+          <TabsTrigger value="kanban" className="gap-2">
+            <Kanban className="w-4 h-4" />
+            Kanban Board
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="table">
+          <EnhancedStoriesTable 
+            savedStories={savedStories}
+            generatingStories={generatingStories}
+            isGenerating={isGenerating}
+            isGenerationComplete={isGenerationComplete}
+            user={user}
+            backlog={backlog}
+          />
+        </TabsContent>
+
+        <TabsContent value="kanban">
+          <KanbanView 
+            stories={savedStories}
+            backlog={backlog}
+            user={user}
+            onStoryUpdate={loadUserStories}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 } 

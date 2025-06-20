@@ -7,7 +7,11 @@ export const maxDuration = 30
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, backlogId } = await req.json()
+    const body = await req.json()
+    console.log('Chat API received:', body) // Debug log
+    
+    const { messages } = body
+    const backlogId = body.backlogId
 
     if (!messages || !Array.isArray(messages)) {
       return new Response('Invalid messages', { status: 400 })
@@ -110,14 +114,14 @@ Keep your responses conversational, helpful, and focused on product development.
     // Add current messages
     conversationMessages.push(...messages)
 
-    const result = streamText({
+    const result = await streamText({
       model: openai('gpt-4o'),
       messages: conversationMessages,
       temperature: 0.7,
       maxTokens: 1000,
     })
 
-    return result.toTextStreamResponse()
+    return result.toDataStreamResponse()
   } catch (error) {
     console.error('Error in chat API:', error)
     return new Response('Failed to process chat message', { status: 500 })

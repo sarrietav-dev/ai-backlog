@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -31,7 +31,7 @@ export default function ChatInterface({ backlog, user }: ChatInterfaceProps) {
     },
     onFinish: async (message) => {
       // Save the conversation to the database
-      await saveChatMessage('assistant', message.content)
+      await saveChatMessageOnly('assistant', message.content)
     },
     onError: (error) => {
       toast.error('Failed to send message. Please try again.')
@@ -39,21 +39,7 @@ export default function ChatInterface({ backlog, user }: ChatInterfaceProps) {
     }
   })
 
-  useEffect(() => {
-    loadChatHistory()
-  }, [backlog.id])
-
-  useEffect(() => {
-    // Auto-scroll to bottom when new messages arrive
-    if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]')
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight
-      }
-    }
-  }, [messages, chatHistory])
-
-  const loadChatHistory = async () => {
+  const loadChatHistory = useCallback(async () => {
     setLoading(true)
     try {
       const supabase = createClient()
@@ -73,7 +59,21 @@ export default function ChatInterface({ backlog, user }: ChatInterfaceProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [backlog.id])
+
+  useEffect(() => {
+    loadChatHistory()
+  }, [loadChatHistory])
+
+  useEffect(() => {
+    // Auto-scroll to bottom when new messages arrive
+    if (scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]')
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight
+      }
+    }
+  }, [messages, chatHistory])
 
   const saveChatMessage = async (role: 'user' | 'assistant', content: string) => {
     try {
@@ -94,6 +94,28 @@ export default function ChatInterface({ backlog, user }: ChatInterfaceProps) {
         // Refresh chat history
         loadChatHistory()
       }
+    } catch (error) {
+      console.error('Error saving chat message:', error)
+    }
+  }
+
+  const saveChatMessageOnly = async (role: 'user' | 'assistant', content: string) => {
+    try {
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('chat_messages')
+        .insert({
+          backlog_id: backlog.id,
+          user_id: user.id,
+          role,
+          content,
+          metadata: {}
+        })
+
+      if (error) {
+        console.error('Error saving chat message:', error)
+      }
+      // Don't refresh chat history to avoid infinite loop
     } catch (error) {
       console.error('Error saving chat message:', error)
     }
