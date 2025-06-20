@@ -11,13 +11,15 @@ import {
   Kanban, 
   ArrowLeft,
   Calendar,
-  Brain
+  Brain,
+  Sparkles
 } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 import type { Backlog } from '@/lib/database.types'
 import Link from 'next/link'
 import ChatInterface from '@/components/chat-interface'
 import StoryManager from '@/components/story-manager'
+import TechStackSuggestions from '@/components/tech-stack-suggestions'
 
 interface BacklogViewProps {
   backlog: Backlog
@@ -79,9 +81,9 @@ export default function BacklogView({ backlog, user }: BacklogViewProps) {
         </Card>
       </div>
 
-      {/* Tabs for Chat and Stories */}
+      {/* Tabs for Chat, Stories, and Tech Stack */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
+        <TabsList className="grid w-full grid-cols-3 max-w-lg">
           <TabsTrigger value="chat" className="gap-2">
             <MessageSquare className="w-4 h-4" />
             AI Chat
@@ -89,6 +91,10 @@ export default function BacklogView({ backlog, user }: BacklogViewProps) {
           <TabsTrigger value="stories" className="gap-2">
             <FileText className="w-4 h-4" />
             User Stories
+          </TabsTrigger>
+          <TabsTrigger value="techstack" className="gap-2">
+            <Sparkles className="w-4 h-4" />
+            Tech Stack
           </TabsTrigger>
         </TabsList>
 
@@ -102,6 +108,12 @@ export default function BacklogView({ backlog, user }: BacklogViewProps) {
         <TabsContent value="stories" className="space-y-0">
           <StoryManager 
             user={user} 
+            backlog={backlog}
+          />
+        </TabsContent>
+
+        <TabsContent value="techstack" className="space-y-0">
+          <TechStackSuggestions 
             backlog={backlog}
           />
         </TabsContent>

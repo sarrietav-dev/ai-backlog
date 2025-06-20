@@ -69,45 +69,59 @@ export default async function Home() {
         </div>
 
         {/* Features Section */}
-        <div className="grid md:grid-cols-3 gap-8 py-16">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 py-16">
           <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-blue-50 to-blue-100/30 dark:from-blue-950/20 dark:to-blue-900/10">
             <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-blue-500/10 rounded-2xl mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
-                <MessageSquare className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              <div className="w-14 h-14 bg-blue-500/10 rounded-2xl mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
+                <MessageSquare className="w-7 h-7 text-blue-600 dark:text-blue-400" />
               </div>
-              <CardTitle className="text-xl">Contextual AI Chat</CardTitle>
+              <CardTitle className="text-lg">Contextual AI Chat</CardTitle>
             </CardHeader>
             <CardContent>
-              <CardDescription className="text-center leading-relaxed">
-                Chat with AI about your product ideas. Each backlog remembers your conversation history and learns from your context.
+              <CardDescription className="text-center text-sm leading-relaxed">
+                Chat with AI about your product ideas. Each backlog remembers your conversation history.
               </CardDescription>
             </CardContent>
           </Card>
 
           <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-green-50 to-green-100/30 dark:from-green-950/20 dark:to-green-900/10">
             <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-green-500/10 rounded-2xl mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Lightbulb className="w-8 h-8 text-green-600 dark:text-green-400" />
+              <div className="w-14 h-14 bg-green-500/10 rounded-2xl mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Lightbulb className="w-7 h-7 text-green-600 dark:text-green-400" />
               </div>
-              <CardTitle className="text-xl">Smart Story Generation</CardTitle>
+              <CardTitle className="text-lg">Smart Story Generation</CardTitle>
             </CardHeader>
             <CardContent>
-              <CardDescription className="text-center leading-relaxed">
-                Generate well-structured user stories with acceptance criteria based on your conversations and product context.
+              <CardDescription className="text-center text-sm leading-relaxed">
+                Generate well-structured user stories with acceptance criteria based on your product context.
               </CardDescription>
             </CardContent>
           </Card>
 
           <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-purple-50 to-purple-100/30 dark:from-purple-950/20 dark:to-purple-900/10">
             <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-purple-500/10 rounded-2xl mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Kanban className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+              <div className="w-14 h-14 bg-purple-500/10 rounded-2xl mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Kanban className="w-7 h-7 text-purple-600 dark:text-purple-400" />
               </div>
-              <CardTitle className="text-xl">Visual Kanban Boards</CardTitle>
+              <CardTitle className="text-lg">Visual Kanban Boards</CardTitle>
             </CardHeader>
             <CardContent>
-              <CardDescription className="text-center leading-relaxed">
-                Track progress with beautiful kanban boards. Drag and drop stories between columns to update their status.
+              <CardDescription className="text-center text-sm leading-relaxed">
+                Track progress with beautiful kanban boards. Drag and drop stories between columns.
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-orange-50 to-orange-100/30 dark:from-orange-950/20 dark:to-orange-900/10">
+            <CardHeader className="text-center">
+              <div className="w-14 h-14 bg-orange-500/10 rounded-2xl mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Brain className="w-7 h-7 text-orange-600 dark:text-orange-400" />
+              </div>
+              <CardTitle className="text-lg">Tech Stack Suggestions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription className="text-center text-sm leading-relaxed">
+                Get AI-powered technology recommendations tailored to your user stories and project requirements.
               </CardDescription>
             </CardContent>
           </Card>
@@ -151,7 +165,7 @@ export default async function Home() {
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Generate better user stories with AI-powered product management
+              Generate better user stories and get tech stack recommendations with AI-powered product management
             </p>
           </div>
         </div>
