@@ -17,21 +17,164 @@
 </p>
 <br/>
 
+# AI Product Backlog
+
+A modern web application that uses AI to generate user stories for product development. Built with Next.js, Supabase, and OpenAI.
+
 ## Features
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Middleware
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+- **AI-Powered Story Generation**: Describe your product idea and get comprehensive user stories powered by GPT-4
+- **Real-time Streaming**: Watch stories generate in real-time with streaming responses
+- **User Authentication**: Sign in with GitHub to save and manage your stories
+- **Persistent Storage**: All stories are saved to Supabase with full CRUD operations
+- **Sortable Table**: View and sort your saved stories by title, status, or creation date
+- **Responsive Design**: Beautiful, mobile-friendly interface built with Tailwind CSS
+- **Type Safety**: Full TypeScript support with Zod schema validation
+
+## Tech Stack
+
+- **Frontend**: Next.js 15 (App Router), React 19, TypeScript
+- **Styling**: Tailwind CSS, shadcn/ui components
+- **Backend**: Next.js API routes, Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth with GitHub OAuth
+- **AI Integration**: Vercel AI SDK with OpenAI GPT-4
+- **Deployment**: Vercel-ready
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+ installed
+- A Supabase account and project
+- An OpenAI API key
+
+### Environment Variables
+
+Create a `.env.local` file with:
+
+```bash
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# OpenAI
+OPENAI_API_KEY=your_openai_api_key
+```
+
+### Database Setup
+
+1. Create a new Supabase project
+2. Run the database migration to create the required tables:
+
+```sql
+-- Create enum for story status
+create type story_status as enum ('backlog', 'in_progress', 'done');
+
+-- Create user stories table
+create table public.user_stories (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users not null,
+  title text not null,
+  description text not null,
+  acceptance_criteria jsonb not null default '[]'::jsonb,
+  status story_status default 'backlog',
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Create indexes
+create index user_stories_user_id_idx on public.user_stories(user_id);
+create index user_stories_created_at_idx on public.user_stories(created_at desc);
+
+-- Enable RLS
+alter table public.user_stories enable row level security;
+
+-- Create policies
+create policy "Users can view own stories" on public.user_stories
+  for select using (auth.uid() = user_id);
+
+create policy "Users can insert own stories" on public.user_stories
+  for insert with check (auth.uid() = user_id);
+
+create policy "Users can update own stories" on public.user_stories
+  for update using (auth.uid() = user_id);
+
+create policy "Users can delete own stories" on public.user_stories
+  for delete using (auth.uid() = user_id);
+```
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/ai-backlog.git
+cd ai-backlog
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Run the development server:
+```bash
+npm run dev
+```
+
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## Usage
+
+1. **Generate Stories**: Enter a product description (e.g., "I want to build a web app for booking dog walking appointments")
+2. **Watch AI Generate**: See stories appear in real-time with proper user story format and acceptance criteria
+3. **Sign In** (optional): Authenticate with GitHub to save stories
+4. **Save & Manage**: Save generated stories to your persistent backlog
+5. **Sort & Filter**: View all your stories in a sortable table
+
+## API Routes
+
+- `POST /api/generate-stories` - Generate user stories from a prompt
+- `POST /api/save-stories` - Save generated stories to the database
+- `GET /auth/callback` - Handle OAuth authentication callbacks
+
+## Example Output
+
+Input: "I want to build a web app for booking dog walking appointments"
+
+Generated Stories:
+- As a dog owner, I want to view available time slots so that I can book a convenient appointment
+- As a dog owner, I want to create a profile for my dog so that walkers know their specific needs
+- As a dog walker, I want to set my availability so that owners can book appropriate times
+
+Each story includes detailed acceptance criteria and implementation guidance.
+
+## Deployment
+
+This app is designed to deploy seamlessly on Vercel:
+
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Add environment variables in Vercel dashboard
+4. Deploy!
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## License
+
+MIT License - see LICENSE file for details
+
+## Support
+
+If you have questions or need help:
+- Open an issue on GitHub
+- Check the Supabase documentation
+- Review the OpenAI API documentation
 
 ## Demo
 

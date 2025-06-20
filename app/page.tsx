@@ -1,51 +1,153 @@
-import { DeployButton } from "@/components/deploy-button";
-import { EnvVarWarning } from "@/components/env-var-warning";
-import { AuthButton } from "@/components/auth-button";
-import { Hero } from "@/components/hero";
-import { ThemeSwitcher } from "@/components/theme-switcher";
-import { ConnectSupabaseSteps } from "@/components/tutorial/connect-supabase-steps";
-import { SignUpUserSteps } from "@/components/tutorial/sign-up-user-steps";
-import { hasEnvVars } from "@/lib/utils";
-import Link from "next/link";
+import { Suspense } from 'react'
+import { createClient } from '@/lib/supabase/server'
+import AuthButton from '@/components/auth/auth-button'
+import StoryGenerator from '@/components/story-generator'
+import StoriesTable from '@/components/stories-table'
+import { ThemeToggle } from '@/components/theme-toggle'
+import { Brain, Lightbulb } from 'lucide-react'
 
-export default function Home() {
+async function UserStories({ userId }: { userId: string }) {
+  const supabase = await createClient()
+  
+  const { data: stories, error } = await supabase
+    .from('user_stories')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching stories:', error)
+    return <div>Error loading stories</div>
+  }
+
+  return <StoriesTable stories={stories || []} />
+}
+
+export default async function Home() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   return (
-    <main className="min-h-screen flex flex-col items-center">
-      <div className="flex-1 w-full flex flex-col gap-20 items-center">
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-            <div className="flex gap-5 items-center font-semibold">
-              <Link href={"/"}>Next.js Supabase Starter</Link>
-              <div className="flex items-center gap-2">
-                <DeployButton />
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/50">
+      {/* Header */}
+              <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Brain className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold">AI Product Backlog</h1>
+                <p className="text-sm text-muted-foreground">
+                  Generate user stories with AI
+                </p>
               </div>
             </div>
-            {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <AuthButton user={user} />
+            </div>
           </div>
-        </nav>
-        <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
-          <Hero />
-          <main className="flex-1 flex flex-col gap-6 px-4">
-            <h2 className="font-medium text-xl mb-4">Next steps</h2>
-            {hasEnvVars ? <SignUpUserSteps /> : <ConnectSupabaseSteps />}
-          </main>
         </div>
+      </header>
 
-        <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
-          <p>
-            Powered by{" "}
-            <a
-              href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-              target="_blank"
-              className="font-bold hover:underline"
-              rel="noreferrer"
-            >
-              Supabase
-            </a>
-          </p>
-          <ThemeSwitcher />
-        </footer>
-      </div>
-    </main>
-  );
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="space-y-8">
+          {/* Hero Section */}
+          <div className="text-center space-y-4 py-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-primary font-medium text-sm">
+              <Lightbulb className="w-4 h-4" />
+              AI-Powered Product Management
+            </div>
+            <h2 className="text-4xl font-bold tracking-tight">
+              Transform Ideas into{' '}
+              <span className="text-primary">User Stories</span>
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Describe your product vision and get a comprehensive backlog of 
+              well-structured user stories in seconds.
+            </p>
+          </div>
+
+          {/* Story Generator */}
+          <StoryGenerator 
+            user={user} 
+          />
+
+          {/* User Stories Table (only show if user is authenticated) */}
+          {user && (
+            <div className="space-y-4">
+              <Suspense 
+                fallback={
+                  <div className="animate-pulse">
+                    <div className="h-64 bg-muted rounded-lg"></div>
+                  </div>
+                }
+              >
+                <UserStories userId={user.id} />
+              </Suspense>
+            </div>
+          )}
+
+          {/* CTA for non-authenticated users */}
+          {!user && (
+            <div className="text-center py-8 space-y-4">
+              <div className="p-6 border-2 border-dashed border-primary/20 rounded-lg">
+                <h3 className="text-lg font-semibold mb-2">
+                  Save Your Stories
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  Sign in to save generated stories to your personal backlog and manage them over time.
+                </p>
+                <AuthButton user={user} />
+              </div>
+            </div>
+          )}
+
+          {/* Features */}
+          <div className="grid md:grid-cols-3 gap-6 py-8">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 bg-blue-500/10 rounded-lg mx-auto flex items-center justify-center">
+                <Brain className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="font-semibold">AI-Generated</h3>
+              <p className="text-sm text-muted-foreground">
+                Powered by GPT-4 to create comprehensive, well-structured user stories
+              </p>
+            </div>
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 bg-green-500/10 rounded-lg mx-auto flex items-center justify-center">
+                <Lightbulb className="w-6 h-6 text-green-600 dark:text-green-400" />
+              </div>
+              <h3 className="font-semibold">MVP Focused</h3>
+              <p className="text-sm text-muted-foreground">
+                Stories prioritized for minimum viable product development
+              </p>
+            </div>
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 bg-purple-500/10 rounded-lg mx-auto flex items-center justify-center">
+                <Lightbulb className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h3 className="font-semibold">Ready to Use</h3>
+              <p className="text-sm text-muted-foreground">
+                Complete with acceptance criteria and actionable descriptions
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t bg-background/80 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <p>© 2024 AI Product Backlog. Built with Next.js, Supabase & OpenAI.</p>
+            <p>Open source on GitHub</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
 }
