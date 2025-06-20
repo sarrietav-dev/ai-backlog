@@ -1,12 +1,12 @@
 import { redirect, notFound } from "next/navigation"
 import { createClient } from '@/lib/supabase/server'
-import KanbanPageComponent from '@/components/kanban-page'
+import StoryManager from '@/components/story-manager'
 
-interface KanbanPageProps {
+interface StoriesPageProps {
   params: Promise<{ id: string }>
 }
 
-export default async function KanbanPage({ params }: KanbanPageProps) {
+export default async function StoriesPage({ params }: StoriesPageProps) {
   const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -27,27 +27,16 @@ export default async function KanbanPage({ params }: KanbanPageProps) {
     notFound()
   }
 
-  // Fetch user stories for this backlog
-  const { data: stories, error: storiesError } = await supabase
-    .from('user_stories')
-    .select('*')
-    .eq('backlog_id', backlog.id)
-    .order('created_at', { ascending: false })
-
-  if (storiesError) {
-    console.error('Error fetching stories:', storiesError)
-  }
-
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold">Kanban Board</h1>
+        <h1 className="text-2xl font-bold">User Stories</h1>
         <p className="text-muted-foreground">
-          Visual workflow management for your user stories. Drag and drop to organize your work.
+          Create, manage, and track user stories for your project. Generate AI-powered stories and break them down into actionable tasks.
         </p>
       </div>
       
-      <KanbanPageComponent backlog={backlog} stories={stories || []} user={user} />
+      <StoryManager user={user} backlog={backlog} />
     </div>
   )
 } 

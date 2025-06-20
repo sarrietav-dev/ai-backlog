@@ -1,12 +1,12 @@
 import { redirect, notFound } from "next/navigation"
 import { createClient } from '@/lib/supabase/server'
-import KanbanPageComponent from '@/components/kanban-page'
+import TechStackSuggestions from '@/components/tech-stack-suggestions'
 
-interface KanbanPageProps {
+interface TechStackPageProps {
   params: Promise<{ id: string }>
 }
 
-export default async function KanbanPage({ params }: KanbanPageProps) {
+export default async function TechStackPage({ params }: TechStackPageProps) {
   const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -27,27 +27,16 @@ export default async function KanbanPage({ params }: KanbanPageProps) {
     notFound()
   }
 
-  // Fetch user stories for this backlog
-  const { data: stories, error: storiesError } = await supabase
-    .from('user_stories')
-    .select('*')
-    .eq('backlog_id', backlog.id)
-    .order('created_at', { ascending: false })
-
-  if (storiesError) {
-    console.error('Error fetching stories:', storiesError)
-  }
-
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold">Kanban Board</h1>
+        <h1 className="text-2xl font-bold">Tech Stack Recommendations</h1>
         <p className="text-muted-foreground">
-          Visual workflow management for your user stories. Drag and drop to organize your work.
+          Get AI-powered technology recommendations based on your project requirements and user stories.
         </p>
       </div>
       
-      <KanbanPageComponent backlog={backlog} stories={stories || []} user={user} />
+      <TechStackSuggestions backlogId={backlog.id} />
     </div>
   )
 } 

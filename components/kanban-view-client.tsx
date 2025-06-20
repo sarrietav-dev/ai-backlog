@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 import { 
   DragDropContext, 
   Droppable, 
@@ -207,7 +208,17 @@ export default function KanbanViewClient({ stories, backlog, user, onStoryUpdate
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <CardTitle className="text-sm font-medium leading-snug">
-                  {story.title}
+                  {backlog ? (
+                    <Link
+                      href={`/backlogs/${backlog.id}/stories/${story.id}`}
+                      className="hover:text-primary transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {story.title}
+                    </Link>
+                  ) : (
+                    story.title
+                  )}
                 </CardTitle>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

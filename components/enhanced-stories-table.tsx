@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import { ArrowUpDown, ArrowUp, ArrowDown, FileText, Sparkles, Loader2, ChevronDown, ChevronRight, Target } from 'lucide-react'
+import Link from 'next/link'
 import type { UserStory, Backlog, Task } from '@/lib/database.types'
 import type { UserStoryInput } from '@/lib/schemas/user-story'
 import type { User } from '@supabase/supabase-js'
@@ -317,7 +318,17 @@ export default function EnhancedStoriesTable({
                             )}
                             <div className="min-w-0 flex-1">
                               <div className="font-medium text-sm line-clamp-2">
-                                {story.title}
+                                {!isGeneratingStory && backlog ? (
+                                  <Link
+                                    href={`/backlogs/${backlog.id}/stories/${story.id}`}
+                                    className="hover:text-primary transition-colors"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {story.title}
+                                  </Link>
+                                ) : (
+                                  story.title
+                                )}
                               </div>
                               {!isExpanded && (
                                 <div className="text-xs text-muted-foreground line-clamp-1 mt-1">

@@ -48,6 +48,44 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={GeistSans.className} suppressHydrationWarning>
+      <head>
+        <meta name="view-transition" content="same-origin" />
+        <style>{`
+          @view-transition {
+            navigation: auto;
+          }
+          
+          ::view-transition-old(root),
+          ::view-transition-new(root) {
+            animation-duration: 0.3s;
+            animation-timing-function: ease-in-out;
+          }
+          
+          ::view-transition-old(root) {
+            animation-name: fade-out, scale-down;
+          }
+          
+          ::view-transition-new(root) {
+            animation-name: fade-in, scale-up;
+          }
+          
+          @keyframes fade-out {
+            to { opacity: 0; }
+          }
+          
+          @keyframes fade-in {
+            from { opacity: 0; }
+          }
+          
+          @keyframes scale-down {
+            to { transform: scale(0.95); }
+          }
+          
+          @keyframes scale-up {
+            from { transform: scale(0.95); }
+          }
+        `}</style>
+      </head>
       <body className="bg-background text-foreground">
         <ThemeProvider
           attribute="class"
