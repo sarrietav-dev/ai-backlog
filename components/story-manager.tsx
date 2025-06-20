@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import StoryGenerator from '@/components/story-generator'
 import EnhancedStoriesTable from '@/components/enhanced-stories-table'
@@ -23,16 +23,7 @@ export default function StoryManager({ user, backlog }: StoryManagerProps) {
   const [isGenerationComplete, setIsGenerationComplete] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  // Load saved stories
-  useEffect(() => {
-    if (user) {
-      loadUserStories()
-    } else {
-      setLoading(false)
-    }
-  }, [user, backlog?.id])
-
-  const loadUserStories = async () => {
+  const loadUserStories = useCallback(async () => {
     if (!user) return
 
     try {
@@ -62,7 +53,16 @@ export default function StoryManager({ user, backlog }: StoryManagerProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user, backlog])
+
+  // Load saved stories
+  useEffect(() => {
+    if (user) {
+      loadUserStories()
+    } else {
+      setLoading(false)
+    }
+  }, [user, backlog?.id, loadUserStories])
 
   const handleGenerationStart = () => {
     setIsGenerating(true)

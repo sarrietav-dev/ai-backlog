@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,9 +10,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, MessageSquare, FileText, Trash2, Edit2 } from 'lucide-react'
+import { Plus, MessageSquare, FileText, Trash2 } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
-import type { Backlog, UserStory, ChatMessage } from '@/lib/database.types'
+import type { Backlog } from '@/lib/database.types'
 import StoryManager from '@/components/story-manager'
 import ChatInterface from '@/components/chat-interface'
 
@@ -29,15 +29,7 @@ export default function BacklogManager({ user }: BacklogManagerProps) {
   const [newBacklogDescription, setNewBacklogDescription] = useState('')
   const [creating, setCreating] = useState(false)
 
-  useEffect(() => {
-    if (user) {
-      loadBacklogs()
-    } else {
-      setLoading(false)
-    }
-  }, [user])
-
-  const loadBacklogs = async () => {
+  const loadBacklogs = useCallback(async () => {
     if (!user) return
 
     try {
@@ -62,7 +54,15 @@ export default function BacklogManager({ user }: BacklogManagerProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user, selectedBacklog])
+
+  useEffect(() => {
+    if (user) {
+      loadBacklogs()
+    } else {
+      setLoading(false)
+    }
+  }, [user, loadBacklogs])
 
   const createBacklog = async () => {
     if (!user || !newBacklogName.trim()) return

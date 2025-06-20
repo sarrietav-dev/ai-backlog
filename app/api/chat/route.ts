@@ -115,10 +115,10 @@ Keep your responses conversational, helpful, and focused on product development.
     conversationMessages.push(...messages)
 
     const result = await streamText({
-      model: openai('gpt-4o'),
+      model: openai('gpt-4o-mini'), // 90% cost reduction!
       messages: conversationMessages,
       temperature: 0.7,
-      maxTokens: 1000,
+      maxTokens: 800, // Reduced tokens for cost optimization
     })
 
     return result.toDataStreamResponse()

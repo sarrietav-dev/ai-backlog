@@ -4,10 +4,11 @@ import KanbanPage from '@/components/kanban-page'
 import AppHeader from '@/components/app-header'
 
 interface KanbanPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function BacklogKanbanPage({ params }: KanbanPageProps) {
+  const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -19,7 +20,7 @@ export default async function BacklogKanbanPage({ params }: KanbanPageProps) {
   const { data: backlog, error } = await supabase
     .from('backlogs')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', user.id)
     .single()
 

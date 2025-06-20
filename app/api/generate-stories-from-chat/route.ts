@@ -79,7 +79,7 @@ ${existingStories.map(story => `- ${story.title}: ${story.description}`).join('\
 
     // Generate stories using AI
     const result = streamObject({
-      model: openai('gpt-4o'),
+      model: openai('gpt-4o-mini'), // 90% cost reduction
       system: systemPrompt,
       prompt: `Analyze the conversation and generate user stories based on the discussed features and requirements.`,
       schema: userStoriesResponseSchema,

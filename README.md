@@ -17,62 +17,355 @@
 </p>
 <br/>
 
-# AI Product Backlog
+# 🧠 AI Product Backlog
 
-A modern web application that uses AI to generate user stories for product development. Built with Next.js, Supabase, and OpenAI.
+> **Transform your product ideas into well-structured user stories using AI-powered conversations**
 
-## Features
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/ai-backlog)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green)](https://supabase.com/)
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4-blue)](https://openai.com/)
 
-- **AI-Powered Story Generation**: Describe your product idea and get comprehensive user stories powered by GPT-4
-- **Real-time Streaming**: Watch stories generate in real-time with streaming responses
-- **User Authentication**: Sign in with GitHub to save and manage your stories
-- **Persistent Storage**: All stories are saved to Supabase with full CRUD operations
-- **Sortable Table**: View and sort your saved stories by title, status, or creation date
-- **Responsive Design**: Beautiful, mobile-friendly interface built with Tailwind CSS
-- **Type Safety**: Full TypeScript support with Zod schema validation
+## 🎯 Overview
 
-## Tech Stack
+AI Product Backlog is a modern web application that revolutionizes product management by combining AI-powered conversations with traditional backlog management. Create multiple product backlogs, chat with AI about your ideas, and generate contextual user stories that understand your product's history and requirements.
 
-- **Frontend**: Next.js 15 (App Router), React 19, TypeScript
-- **Styling**: Tailwind CSS, shadcn/ui components
-- **Backend**: Next.js API routes, Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth with GitHub OAuth
-- **AI Integration**: Vercel AI SDK with OpenAI GPT-4
-- **Deployment**: Vercel-ready
+### ✨ Key Features
 
-## Getting Started
+- 🤖 **Contextual AI Chat** - Discuss product ideas with AI that remembers your conversation history
+- ⚡ **Smart Story Generation** - Generate user stories from chat conversations with proper format and acceptance criteria
+- 📋 **Multi-Backlog Management** - Create and manage multiple product backlogs
+- 📊 **Visual Kanban Boards** - Track progress with drag-and-drop kanban functionality
+- 🔐 **Secure Authentication** - GitHub OAuth integration with Supabase Auth
+- 💾 **Persistent Storage** - All conversations and stories saved to PostgreSQL
+- 📱 **Responsive Design** - Beautiful, mobile-friendly interface
+- 🌓 **Dark/Light Mode** - System-aware theme switching
+- ⚡ **Real-time Streaming** - Watch AI responses generate in real-time
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
 - Node.js 18+ installed
 - A Supabase account and project
 - An OpenAI API key
+- GitHub account (for OAuth)
 
-### Environment Variables
-
-Create a `.env.local` file with:
+### 1. Clone & Install
 
 ```bash
-# Supabase
+git clone https://github.com/yourusername/ai-backlog.git
+cd ai-backlog
+npm install
+```
+
+### 2. Environment Setup
+
+Create `.env.local`:
+
+```bash
+# Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-# OpenAI
+# OpenAI Configuration
 OPENAI_API_KEY=your_openai_api_key
 ```
 
-### Database Setup
+### 3. Database Migration
 
-1. Create a new Supabase project
-2. Run the database migration to create the required tables:
+Run the SQL migrations in your Supabase dashboard (see [Database Setup](#database-setup) below).
+
+### 4. GitHub OAuth Setup
+
+1. Go to GitHub Settings → Developer settings → OAuth Apps
+2. Create a new OAuth App:
+   - **Application name**: AI Product Backlog
+   - **Homepage URL**: `http://localhost:3000`
+   - **Authorization callback URL**: `http://localhost:3000/auth/callback`
+3. Add the OAuth credentials to your Supabase project:
+   - Go to Authentication → Providers → GitHub
+   - Enable GitHub provider
+   - Add your Client ID and Client Secret
+
+### 5. Run Development Server
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to see your application.
+
+## 🏗️ Architecture
+
+### Tech Stack
+
+- **Frontend**: Next.js 15 (App Router), React 19, TypeScript
+- **Styling**: Tailwind CSS v4, shadcn/ui components, Lucide icons
+- **Backend**: Next.js API routes, Edge Runtime
+- **Database**: Supabase (PostgreSQL), Row Level Security (RLS)
+- **Authentication**: Supabase Auth with GitHub OAuth
+- **AI Integration**: Vercel AI SDK with OpenAI GPT-4o
+- **State Management**: React hooks, SWR for data fetching
+- **Deployment**: Vercel, serverless functions
+
+### Database Schema
 
 ```sql
+-- Backlogs table
+backlogs (
+  id: uuid (primary key),
+  user_id: uuid (foreign key to auth.users),
+  name: text,
+  description: text,
+  created_at: timestamp,
+  updated_at: timestamp
+)
+
+-- User Stories table
+user_stories (
+  id: uuid (primary key),
+  backlog_id: uuid (foreign key to backlogs),
+  user_id: uuid (foreign key to auth.users),
+  title: text,
+  description: text,
+  acceptance_criteria: jsonb,
+  status: enum ('backlog', 'in_progress', 'done'),
+  created_at: timestamp,
+  updated_at: timestamp
+)
+
+-- Chat Messages table
+chat_messages (
+  id: uuid (primary key),
+  backlog_id: uuid (foreign key to backlogs),
+  user_id: uuid (foreign key to auth.users),
+  role: text ('user' | 'assistant'),
+  content: text,
+  metadata: jsonb,
+  created_at: timestamp
+)
+```
+
+## 📖 Features Deep Dive
+
+### 🤖 AI Chat Interface
+
+The chat interface provides a conversational way to explore product ideas:
+
+- **Context Awareness**: AI remembers the entire conversation history for each backlog
+- **Backlog Context**: AI understands existing user stories and backlog description
+- **Smart Responses**: Asks clarifying questions and provides product management insights
+- **Real-time Streaming**: Responses appear as they're generated
+- **Message Persistence**: All conversations are saved to the database
+
+**Example Conversation:**
+```
+User: I want to build a task management app for teams
+AI: That's a great idea! Let me ask a few questions to better understand your vision:
+
+1. What size teams are you targeting? (2-5 people, 10-50, enterprise?)
+2. What's the main pain point you're solving that existing tools don't address?
+3. Are you thinking more kanban-style, list-based, or calendar-focused?
+
+User: Small teams of 3-8 people. The main issue is that tools like Asana are too complex
+AI: Perfect! Simplicity for small teams is a great niche. So you're thinking of something that:
+- Has the power they need but isn't overwhelming
+- Quick to set up and start using
+- Maybe focuses on the core workflow without enterprise bells and whistles?
+
+What specific features would you consider "must-have" vs "nice-to-have"?
+```
+
+### ⚡ Smart Story Generation
+
+Generate user stories directly from your conversations:
+
+- **Context-Driven**: Stories are generated based on the specific conversation context
+- **Proper Format**: Follows "As a [user], I want [goal] so that [benefit]" format
+- **Detailed Acceptance Criteria**: Each story includes 2-4 specific, testable criteria
+- **Avoids Duplication**: AI checks existing stories to prevent duplicates
+- **Priority Ordering**: Stories are generated in order of importance
+
+**Example Generated Stories:**
+```
+Title: As a team leader, I want to create projects quickly so that my team can start working without delays
+
+Description: Team leaders need a streamlined way to set up new projects without going through complex configuration processes.
+
+Acceptance Criteria:
+• Can create a project with just a name and description
+• Pre-configured with sensible defaults (standard columns, basic workflow)
+• Takes less than 2 minutes from creation to team members being able to add tasks
+• Includes option to use templates for common project types
+```
+
+### 📊 Kanban Board
+
+Visual task management with drag-and-drop functionality:
+
+- **Three-Column Layout**: Backlog → In Progress → Done
+- **Drag & Drop**: Move stories between columns to update status
+- **Real-time Updates**: Changes are immediately saved to the database
+- **Story Details**: Click to view full story details and acceptance criteria
+- **Progress Tracking**: Visual indicators of backlog completion
+
+### 🔐 Authentication & Security
+
+- **GitHub OAuth**: Secure authentication without managing passwords
+- **Row Level Security**: Database-level security ensuring users only see their data
+- **Server-side Auth**: Authentication handled on the server for security
+- **Session Management**: Persistent sessions with automatic refresh
+
+## 💰 Cost Optimization Guide
+
+### Free Tier Limits
+
+**Vercel (Free Plan)**
+- ✅ 100GB bandwidth/month
+- ✅ Unlimited personal repositories
+- ✅ Automatic deployments
+- ✅ Edge functions (10 second max duration)
+
+**Supabase (Free Plan)**
+- ✅ Up to 50,000 monthly active users
+- ✅ 500MB database storage
+- ✅ 50MB file storage
+- ✅ Up to 500,000 Edge Function invocations/month
+- ⚠️ 2 projects maximum
+
+**OpenAI Costs**
+- GPT-4o: ~$0.0025 per 1K input tokens, ~$0.01 per 1K output tokens
+- GPT-4o-mini: ~$0.00015 per 1K input tokens, ~$0.0006 per 1K output tokens
+
+### Cost Reduction Strategies
+
+#### 1. Switch to GPT-4o-mini
+
+Update `app/api/chat/route.ts` and `app/api/generate-stories/route.ts`:
+
+```typescript
+// Change from:
+model: openai('gpt-4o')
+// To:
+model: openai('gpt-4o-mini')
+
+// This reduces costs by ~90% with minimal quality loss for most use cases
+```
+
+#### 2. Implement Request Caching
+
+```typescript
+// Add to your API routes
+const cacheKey = `story-generation-${hashString(prompt)}`
+const cached = await redis.get(cacheKey)
+if (cached) return cached
+
+// Generate response
+const response = await generateStory(prompt)
+await redis.setex(cacheKey, 3600, response) // Cache for 1 hour
+```
+
+#### 3. Add Rate Limiting
+
+```typescript
+// middleware.ts
+import { Ratelimit } from "@upstash/ratelimit"
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(10, "1 h"), // 10 requests per hour
+})
+```
+
+#### 4. Set OpenAI Spending Limits
+
+1. Go to [OpenAI Usage Dashboard](https://platform.openai.com/usage)
+2. Set monthly spending limits (e.g., $5-10/month)
+3. Configure usage alerts
+
+### Alternative AI Providers
+
+#### Groq (Much Cheaper & Faster)
+
+```bash
+npm install groq-sdk
+```
+
+```typescript
+import Groq from 'groq-sdk'
+
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
+})
+
+// Use Llama 3.1 or Mixtral models
+const response = await groq.chat.completions.create({
+  messages: messages,
+  model: "llama-3.1-70b-versatile", // Much cheaper than GPT-4
+})
+```
+
+#### Local Development with Ollama
+
+```bash
+# Install Ollama
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# Run locally (free)
+ollama run llama3.1
+```
+
+## 🚀 Deployment
+
+### Vercel Deployment
+
+1. **Push to GitHub**:
+   ```bash
+   git add .
+   git commit -m "Initial commit"
+   git push origin main
+   ```
+
+2. **Connect to Vercel**:
+   - Go to [vercel.com](https://vercel.com)
+   - Import your GitHub repository
+   - Configure environment variables
+
+3. **Environment Variables in Vercel**:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=your_production_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_supabase_anon_key
+   OPENAI_API_KEY=your_openai_api_key
+   ```
+
+4. **Update GitHub OAuth**:
+   - Update callback URL to `https://yourdomain.vercel.app/auth/callback`
+   - Update Supabase Auth settings with production URLs
+
+### Database Setup
+
+Run these SQL commands in your Supabase SQL editor:
+
+```sql
+-- Create backlogs table
+create table public.backlogs (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users not null,
+  name text not null,
+  description text default '',
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 -- Create enum for story status
 create type story_status as enum ('backlog', 'in_progress', 'done');
 
 -- Create user stories table
 create table public.user_stories (
   id uuid default gen_random_uuid() primary key,
+  backlog_id uuid references public.backlogs(id) on delete cascade not null,
   user_id uuid references auth.users not null,
   title text not null,
   description text not null,
@@ -82,167 +375,226 @@ create table public.user_stories (
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Create indexes
+-- Create chat messages table
+create table public.chat_messages (
+  id uuid default gen_random_uuid() primary key,
+  backlog_id uuid references public.backlogs(id) on delete cascade not null,
+  user_id uuid references auth.users not null,
+  role text not null check (role in ('user', 'assistant')),
+  content text not null,
+  metadata jsonb default '{}'::jsonb,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Create indexes for performance
+create index backlogs_user_id_idx on public.backlogs(user_id);
+create index backlogs_created_at_idx on public.backlogs(created_at desc);
+create index user_stories_backlog_id_idx on public.user_stories(backlog_id);
 create index user_stories_user_id_idx on public.user_stories(user_id);
 create index user_stories_created_at_idx on public.user_stories(created_at desc);
+create index chat_messages_backlog_id_idx on public.chat_messages(backlog_id);
+create index chat_messages_created_at_idx on public.chat_messages(created_at asc);
 
--- Enable RLS
+-- Enable Row Level Security
+alter table public.backlogs enable row level security;
 alter table public.user_stories enable row level security;
+alter table public.chat_messages enable row level security;
 
--- Create policies
+-- Create RLS policies for backlogs
+create policy "Users can view own backlogs" on public.backlogs
+  for select using (auth.uid() = user_id);
+create policy "Users can insert own backlogs" on public.backlogs
+  for insert with check (auth.uid() = user_id);
+create policy "Users can update own backlogs" on public.backlogs
+  for update using (auth.uid() = user_id);
+create policy "Users can delete own backlogs" on public.backlogs
+  for delete using (auth.uid() = user_id);
+
+-- Create RLS policies for user stories
 create policy "Users can view own stories" on public.user_stories
   for select using (auth.uid() = user_id);
-
 create policy "Users can insert own stories" on public.user_stories
   for insert with check (auth.uid() = user_id);
-
 create policy "Users can update own stories" on public.user_stories
   for update using (auth.uid() = user_id);
-
 create policy "Users can delete own stories" on public.user_stories
+  for delete using (auth.uid() = user_id);
+
+-- Create RLS policies for chat messages
+create policy "Users can view own chat messages" on public.chat_messages
+  for select using (auth.uid() = user_id);
+create policy "Users can insert own chat messages" on public.chat_messages
+  for insert with check (auth.uid() = user_id);
+create policy "Users can update own chat messages" on public.chat_messages
+  for update using (auth.uid() = user_id);
+create policy "Users can delete own chat messages" on public.chat_messages
   for delete using (auth.uid() = user_id);
 ```
 
-### Installation
+## 💼 Monetization Strategies
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/ai-backlog.git
-cd ai-backlog
-```
+### 1. Freemium Model
 
-2. Install dependencies:
-```bash
-npm install
-```
+**Free Tier:**
+- 2 backlogs maximum
+- 10 AI conversations per month
+- Basic kanban board
 
-3. Run the development server:
-```bash
-npm run dev
-```
+**Pro Tier ($9/month):**
+- Unlimited backlogs
+- Unlimited AI conversations
+- Advanced features (templates, export, etc.)
+- Priority support
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+### 2. One-Time Purchase
 
-## Usage
+**Lifetime Access ($49):**
+- All features unlocked
+- Future updates included
+- One-time payment, no subscriptions
 
-1. **Generate Stories**: Enter a product description (e.g., "I want to build a web app for booking dog walking appointments")
-2. **Watch AI Generate**: See stories appear in real-time with proper user story format and acceptance criteria
-3. **Sign In** (optional): Authenticate with GitHub to save stories
-4. **Save & Manage**: Save generated stories to your persistent backlog
-5. **Sort & Filter**: View all your stories in a sortable table
+### 3. GitHub Sponsors
 
-## API Routes
+- Accept donations for feature development
+- Sponsor tiers with perks (early access, feature requests)
+- Transparent development process
 
-- `POST /api/generate-stories` - Generate user stories from a prompt
-- `POST /api/save-stories` - Save generated stories to the database
-- `GET /auth/callback` - Handle OAuth authentication callbacks
+### 4. White-Label Solution
 
-## Example Output
+- License the codebase to companies
+- Custom branding and deployment
+- Enterprise support
 
-Input: "I want to build a web app for booking dog walking appointments"
+## 🤝 Contributing
 
-Generated Stories:
-- As a dog owner, I want to view available time slots so that I can book a convenient appointment
-- As a dog owner, I want to create a profile for my dog so that walkers know their specific needs
-- As a dog walker, I want to set my availability so that owners can book appropriate times
+We welcome contributions! Please see our [Contributing Guide](./docs/CONTRIBUTING.md) for details.
 
-Each story includes detailed acceptance criteria and implementation guidance.
-
-## Deployment
-
-This app is designed to deploy seamlessly on Vercel:
-
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Add environment variables in Vercel dashboard
-4. Deploy!
-
-## Contributing
+### Development Workflow
 
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
 3. Make your changes
 4. Add tests if applicable
-5. Submit a pull request
+5. Commit: `git commit -m 'Add amazing feature'`
+6. Push: `git push origin feature/amazing-feature`
+7. Submit a Pull Request
 
-## License
+### Local Development
 
-MIT License - see LICENSE file for details
+```bash
+# Install dependencies
+npm install
 
-## Support
+# Start Supabase (if using local development)
+npx supabase start
 
-If you have questions or need help:
-- Open an issue on GitHub
-- Check the Supabase documentation
-- Review the OpenAI API documentation
+# Run development server
+npm run dev
 
-## Demo
+# Run type checking
+npm run type-check
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+# Run linting
+npm run lint
+```
 
-## Deploy to Vercel
+## 📚 API Documentation
 
-Vercel deployment will guide you through creating a Supabase account and project.
+### Endpoints
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+- `POST /api/chat` - AI chat conversation
+- `POST /api/generate-stories` - Generate user stories from prompt
+- `POST /api/generate-stories-from-chat` - Generate stories from chat context
+- `GET /auth/callback` - OAuth callback handler
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+For detailed API documentation, see [docs/API.md](./docs/API.md).
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+## 🔧 Configuration
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
+### Environment Variables
 
-## Clone and run locally
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | ✅ | - |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | ✅ | - |
+| `OPENAI_API_KEY` | OpenAI API key | ✅ | - |
+| `GROQ_API_KEY` | Groq API key (optional) | ❌ | - |
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+### Feature Flags
 
-2. Create a Next.js app using the Supabase Starter template npx command
+Update `lib/config.ts` to enable/disable features:
 
-   ```bash
-   npx create-next-app --example with-supabase with-supabase-app
-   ```
+```typescript
+export const config = {
+  features: {
+    aiChat: true,
+    kanbanBoard: true,
+    storyGeneration: true,
+    exportFeatures: false, // Pro feature
+  },
+  limits: {
+    freeBacklogs: 2,
+    freeChatMessages: 10,
+  }
+}
+```
 
-   ```bash
-   yarn create next-app --example with-supabase with-supabase-app
-   ```
+## 🐛 Troubleshooting
 
-   ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
-   ```
+### Common Issues
 
-3. Use `cd` to change into the app's directory
+**1. Authentication not working**
+- Check GitHub OAuth configuration
+- Verify callback URLs match exactly
+- Ensure Supabase Auth is properly configured
 
-   ```bash
-   cd with-supabase-app
-   ```
+**2. AI responses not generating**
+- Verify OpenAI API key is valid
+- Check API key permissions and billing
+- Look at browser console for errors
 
-4. Rename `.env.example` to `.env.local` and update the following:
+**3. Database connection issues**
+- Verify Supabase URL and anon key
+- Check if RLS policies are properly set up
+- Ensure tables exist (run migrations)
 
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
-   ```
+**4. Stories not saving**
+- Check authentication status
+- Verify RLS policies allow the operation
+- Look at server logs for errors
 
-   Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
+For more help, see [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md).
 
-5. You can now run the Next.js local development server:
+## 📄 License
 
-   ```bash
-   npm run dev
-   ```
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+## 🙏 Acknowledgments
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+- [Vercel](https://vercel.com/) for the hosting platform
+- [Supabase](https://supabase.com/) for the backend infrastructure
+- [OpenAI](https://openai.com/) for the AI capabilities
+- [shadcn/ui](https://ui.shadcn.com/) for the beautiful UI components
+- [Tailwind CSS](https://tailwindcss.com/) for the styling system
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+## 📞 Support
 
-## Feedback and issues
+- 📧 Email: your-email@example.com
+- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/ai-backlog/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/yourusername/ai-backlog/discussions)
+- 📖 Documentation: [docs/](./docs/)
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+---
 
-## More Supabase examples
+<p align="center">
+  <strong>Built with ❤️ for product managers worldwide</strong>
+</p>
 
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+<p align="center">
+  <a href="#-overview">Overview</a> •
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-features-deep-dive">Features</a> •
+  <a href="#-cost-optimization-guide">Cost Guide</a> •
+  <a href="#-deployment">Deployment</a> •
+  <a href="#-monetization-strategies">Monetization</a>
+</p>

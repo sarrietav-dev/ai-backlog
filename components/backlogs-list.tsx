@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Badge } from '@/components/ui/badge'
 import { 
   Plus, 
   FileText, 
@@ -15,7 +14,6 @@ import {
   MessageSquare, 
   Kanban, 
   Calendar,
-  ArrowRight,
   Brain
 } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
@@ -35,15 +33,7 @@ export default function BacklogsList({ user }: BacklogsListProps) {
   const [newBacklogDescription, setNewBacklogDescription] = useState('')
   const [creating, setCreating] = useState(false)
 
-  useEffect(() => {
-    if (user) {
-      loadBacklogs()
-    } else {
-      setLoading(false)
-    }
-  }, [user])
-
-  const loadBacklogs = async () => {
+  const loadBacklogs = useCallback(async () => {
     if (!user) return
 
     try {
@@ -66,7 +56,15 @@ export default function BacklogsList({ user }: BacklogsListProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    if (user) {
+      loadBacklogs()
+    } else {
+      setLoading(false)
+    }
+  }, [user, loadBacklogs])
 
   const createBacklog = async () => {
     if (!user || !newBacklogName.trim()) return

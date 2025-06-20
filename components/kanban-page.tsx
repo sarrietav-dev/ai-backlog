@@ -1,13 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
   ArrowLeft,
   Calendar,
-  Brain,
   Kanban,
   RefreshCw
 } from 'lucide-react'
@@ -24,7 +23,7 @@ interface KanbanPageProps {
 }
 
 export default function KanbanPage({ backlog, stories: initialStories, user }: KanbanPageProps) {
-  const [stories, setStories] = useState(initialStories)
+  const [stories] = useState(initialStories)
   const [refreshing, setRefreshing] = useState(false)
   const router = useRouter()
 

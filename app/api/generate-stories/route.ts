@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     await supabase.auth.getUser()
 
     const result = streamObject({
-      model: openai('gpt-4o'),
+      model: openai('gpt-4o-mini'), // 90% cost reduction with minimal quality loss
       system: `You are a seasoned Product Manager with expertise in writing clear, actionable user stories. 
         
 Your task is to analyze the user's product idea and generate a comprehensive backlog of user stories.
