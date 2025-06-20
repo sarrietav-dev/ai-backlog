@@ -64,17 +64,17 @@ export default function StoryManager({ user, backlog }: StoryManagerProps) {
     }
   }, [user, backlog?.id, loadUserStories])
 
-  const handleGenerationStart = () => {
+  const handleGenerationStart = useCallback(() => {
     setIsGenerating(true)
     setIsGenerationComplete(false)
     setGeneratingStories([])
-  }
+  }, [])
 
-  const handleStoriesUpdated = (stories: UserStoryInput[]) => {
+  const handleStoriesUpdated = useCallback((stories: UserStoryInput[]) => {
     setGeneratingStories(stories)
-  }
+  }, [])
 
-  const handleGenerationComplete = () => {
+  const handleGenerationComplete = useCallback(() => {
     setIsGenerating(false)
     setIsGenerationComplete(true)
     
@@ -82,14 +82,14 @@ export default function StoryManager({ user, backlog }: StoryManagerProps) {
     setTimeout(() => {
       setIsGenerationComplete(false)
     }, 3000)
-  }
+  }, [])
 
-  const handleStoriesSaved = () => {
+  const handleStoriesSaved = useCallback(() => {
     // Clear generating stories and reload saved stories
     setGeneratingStories([])
     setIsGenerationComplete(false)
     loadUserStories()
-  }
+  }, [loadUserStories])
 
   if (loading) {
     return (

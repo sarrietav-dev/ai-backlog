@@ -114,7 +114,7 @@ export default function BacklogView({ backlog, user }: BacklogViewProps) {
 
         <TabsContent value="techstack" className="space-y-0">
           <TechStackSuggestions 
-            backlog={backlog}
+            backlogId={backlog.id}
           />
         </TabsContent>
       </Tabs>
