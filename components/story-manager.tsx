@@ -5,8 +5,11 @@ import { createClient } from '@/lib/supabase/client'
 import StoryGenerator from '@/components/story-generator'
 import EnhancedStoriesTable from '@/components/enhanced-stories-table'
 import KanbanView from '@/components/kanban-view'
+import BulkTaskGenerator from '@/components/bulk-task-generator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Table, Kanban } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { Table, Kanban, Sparkles } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 import type { UserStory, Backlog } from '@/lib/database.types'
 import type { UserStoryInput } from '@/lib/schemas/user-story'
@@ -115,6 +118,32 @@ export default function StoryManager({ user, backlog }: StoryManagerProps) {
         onGenerationComplete={handleGenerationComplete}
         onStoriesSaved={handleStoriesSaved}
       />
+
+      {/* Bulk Task Generator - Show only if there are saved stories */}
+      {savedStories.length > 0 && user && backlog && (
+        <>
+          <Separator />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                Bulk AI Task Generation
+              </CardTitle>
+              <CardDescription>
+                Generate AI tasks for all {savedStories.length} user stories in &quot;{backlog.name}&quot; at once
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <BulkTaskGenerator
+                backlog={backlog}
+                userStories={savedStories}
+                onTasksGenerated={loadUserStories}
+              />
+            </CardContent>
+          </Card>
+          <Separator />
+        </>
+      )}
 
       {/* Stories Views - Table and Kanban */}
       <Tabs defaultValue="table" className="space-y-6">

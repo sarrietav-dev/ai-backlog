@@ -41,8 +41,8 @@ export default function StoriesTable({ stories }: StoriesTableProps) {
 
   const sortedStories = useMemo(() => {
     return [...stories].sort((a, b) => {
-      let aValue: string | number = a[sortField]
-      let bValue: string | number = b[sortField]
+      let aValue: string | number = a[sortField] || ''
+      let bValue: string | number = b[sortField] || ''
 
       if (sortField === 'created_at') {
         aValue = new Date(a.created_at).getTime()
@@ -161,9 +161,9 @@ export default function StoriesTable({ stories }: StoriesTableProps) {
                     <TableCell>
                       <Badge 
                         variant="outline" 
-                        className={statusStyles[story.status]}
+                        className={statusStyles[story.status as keyof typeof statusStyles] || statusStyles.backlog}
                       >
-                        {statusLabels[story.status]}
+                        {statusLabels[story.status as keyof typeof statusLabels] || 'Backlog'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">

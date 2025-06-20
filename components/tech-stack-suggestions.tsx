@@ -1,12 +1,13 @@
 'use client'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useState, useEffect } from 'react'
 import { experimental_useObject as useObject } from 'ai/react'
 import { techStackResponseSchema } from '@/lib/schemas/tech-stack'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { 
@@ -42,6 +43,23 @@ interface TechStackSuggestionsProps {
   backlogId: string
 }
 
+interface CachedTechStackData {
+  projectType?: string
+  complexity?: string
+  estimatedTimeframe?: string
+  keyFeatures?: string[]
+  suggestions?: TechSuggestion[]
+  cachedAt?: string
+}
+
+interface TechSuggestion {
+  category?: string
+  primary?: string
+  alternatives?: string[]
+  reasoning?: string
+  difficulty?: 'beginner' | 'intermediate' | 'advanced'
+}
+
 const categoryIcons = {
   frontend: Globe,
   backend: Server,
@@ -72,7 +90,7 @@ const projectComplexityColors = {
 export default function TechStackSuggestions({ backlogId }: TechStackSuggestionsProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
-  const [cachedData, setCachedData] = useState<any>(null)
+  const [cachedData, setCachedData] = useState<CachedTechStackData | null>(null)
   const [isLoadingCache, setIsLoadingCache] = useState(true)
   const [lastGenerated, setLastGenerated] = useState<Date | null>(null)
 
@@ -130,7 +148,8 @@ export default function TechStackSuggestions({ backlogId }: TechStackSuggestions
   useEffect(() => {
     const currentSuggestions = suggestions || cachedData
     if (currentSuggestions?.suggestions) {
-      const categories = new Set<string>(currentSuggestions.suggestions.map((s: any) => s.category))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const categories = new Set<string>(currentSuggestions.suggestions.map((s: any) => s.category || ''))
       setExpandedCategories(categories)
     }
   }, [suggestions, cachedData])
@@ -171,7 +190,7 @@ export default function TechStackSuggestions({ backlogId }: TechStackSuggestions
 **Estimated Timeframe:** ${currentSuggestions.estimatedTimeframe || 'Not specified'}
 
 ## Key Features
-${currentSuggestions.keyFeatures?.map((feature: string) => `- ${feature}`).join('\n') || 'No key features specified'}
+${currentSuggestions.keyFeatures?.filter((feature): feature is string => typeof feature === 'string' && Boolean(feature)).map((feature) => `- ${feature}`).join('\n') || 'No key features specified'}
 
 ## Technology Recommendations
 ${currentSuggestions.suggestions?.map((suggestion: any) => `
@@ -199,6 +218,7 @@ Generated on: ${lastGenerated?.toLocaleDateString() || 'Unknown'}`
   }
 
   const currentSuggestions = suggestions || cachedData
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const filteredSuggestions = currentSuggestions?.suggestions?.filter((suggestion: any) =>
     suggestion?.primary?.toLowerCase()?.includes(searchQuery.toLowerCase()) ||
     suggestion?.category?.toLowerCase()?.includes(searchQuery.toLowerCase()) ||
@@ -206,6 +226,7 @@ Generated on: ${lastGenerated?.toLocaleDateString() || 'Unknown'}`
      suggestion.alternatives.some((alt: string) => alt?.toLowerCase()?.includes(searchQuery.toLowerCase())))
   ) || []
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const groupedSuggestions = filteredSuggestions.reduce((groups: any, suggestion: any) => {
     const category = suggestion?.category
     if (category && !groups[category]) {
@@ -363,8 +384,8 @@ Generated on: ${lastGenerated?.toLocaleDateString() || 'Unknown'}`
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-2">Key Features</div>
                   <div className="flex flex-wrap gap-2">
-                    {currentSuggestions.keyFeatures.map((feature: string, index: number) => (
-                      <Badge key={index} variant="secondary">
+                    {currentSuggestions.keyFeatures?.filter((feature): feature is string => typeof feature === 'string' && Boolean(feature)).map((feature) => (
+                      <Badge key={feature} variant="secondary">
                         {feature}
                       </Badge>
                     ))}
@@ -395,9 +416,12 @@ Generated on: ${lastGenerated?.toLocaleDateString() || 'Unknown'}`
           )}
 
           {/* Technology Categories */}
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {Object.entries(groupedSuggestions).map(([category, suggestions]) => {
             const IconComponent = categoryIcons[category as keyof typeof categoryIcons] || Settings
             const isExpanded = expandedCategories.has(category)
+            // Type guard to ensure suggestions is an array
+            const suggestionsArray = Array.isArray(suggestions) ? suggestions : []
             
             return (
               <Card key={category}>
@@ -408,7 +432,7 @@ Generated on: ${lastGenerated?.toLocaleDateString() || 'Unknown'}`
                         <CardTitle className="flex items-center gap-2">
                           <IconComponent className="h-5 w-5 text-blue-600" />
                           {category.charAt(0).toUpperCase() + category.slice(1).replace('-', ' & ')}
-                          <Badge variant="outline">{(suggestions as any[]).length}</Badge>
+                          <Badge variant="outline">{suggestionsArray.length}</Badge>
                         </CardTitle>
                         {isExpanded ? (
                           <ChevronDown className="h-4 w-4" />
@@ -422,34 +446,35 @@ Generated on: ${lastGenerated?.toLocaleDateString() || 'Unknown'}`
                   <CollapsibleContent>
                     <CardContent className="pt-0">
                       <div className="space-y-4">
-                                                 {(suggestions as any[]).map((suggestion, index) => (
-                           <div key={index} className="border rounded-lg p-4 space-y-3">
-                             <div className="flex items-center justify-between flex-wrap gap-2">
-                               <div className="flex items-center gap-2">
-                                 <CheckCircle className="h-4 w-4 text-green-600" />
-                                 <span className="font-semibold text-lg">{suggestion?.primary || 'Technology'}</span>
-                               </div>
-                               <Badge className={complexityColors[suggestion?.difficulty as keyof typeof complexityColors] || 'bg-gray-100'}>
-                                 {suggestion?.difficulty || 'Unknown'}
-                               </Badge>
-                             </div>
-                             
-                             <p className="text-muted-foreground">{suggestion?.reasoning || 'No reasoning provided'}</p>
-                             
-                             {suggestion?.alternatives && Array.isArray(suggestion.alternatives) && suggestion.alternatives.length > 0 && (
-                               <div>
-                                 <div className="text-sm font-medium text-muted-foreground mb-2">Alternatives:</div>
-                                 <div className="flex flex-wrap gap-2">
-                                   {suggestion.alternatives.map((alt: string, altIndex: number) => (
-                                     <Badge key={altIndex} variant="outline">
-                                       {alt || 'Alternative'}
-                                     </Badge>
-                                   ))}
-                                 </div>
-                               </div>
-                             )}
-                           </div>
-                         ))}
+                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                        {suggestionsArray.map((suggestion: any, index: number) => (
+                          <div key={index} className="border rounded-lg p-4 space-y-3">
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <div className="flex items-center gap-2">
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                                <span className="font-semibold text-lg">{suggestion?.primary || 'Technology'}</span>
+                              </div>
+                              <Badge className={complexityColors[suggestion?.difficulty as keyof typeof complexityColors] || 'bg-gray-100'}>
+                                {suggestion?.difficulty || 'Unknown'}
+                              </Badge>
+                            </div>
+                            
+                            <p className="text-muted-foreground">{suggestion?.reasoning || 'No reasoning provided'}</p>
+                            
+                            {suggestion?.alternatives && Array.isArray(suggestion.alternatives) && suggestion.alternatives.length > 0 && (
+                              <div>
+                                <div className="text-sm font-medium text-muted-foreground mb-2">Alternatives:</div>
+                                <div className="flex flex-wrap gap-2">
+                                  {suggestion.alternatives.map((alt: any, altIndex: number) => (
+                                    <Badge key={altIndex} variant="outline">
+                                      {alt || 'Alternative'}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </CardContent>
                   </CollapsibleContent>
