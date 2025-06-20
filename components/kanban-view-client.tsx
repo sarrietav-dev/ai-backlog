@@ -131,7 +131,8 @@ export default function KanbanViewClient({ stories, backlog, user, onStoryUpdate
       if (response.ok) {
         // Clear optimistic update and refresh data
         setOptimisticUpdates(prev => {
-          const { [storyId]: removed, ...rest } = prev
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { [storyId]: _, ...rest } = prev
           return rest
         })
         toast.success('Story status updated!')
@@ -142,7 +143,8 @@ export default function KanbanViewClient({ stories, backlog, user, onStoryUpdate
     } catch (error) {
       // Rollback optimistic update on error
       setOptimisticUpdates(prev => {
-        const { [storyId]: removed, ...rest } = prev
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [storyId]: _, ...rest } = prev
         return rest
       })
       toast.error('Failed to update story status. Changes have been reverted.', {
