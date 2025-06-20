@@ -14,9 +14,10 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
+    const { backlogId, ...storiesData } = body
     
     // Validate the request body
-    const validation = userStoriesResponseSchema.safeParse(body)
+    const validation = userStoriesResponseSchema.safeParse(storiesData)
     
     if (!validation.success) {
       return NextResponse.json(
@@ -30,6 +31,7 @@ export async function POST(req: NextRequest) {
     // Transform stories for database insertion
     const storiesToInsert = stories.map(story => ({
       user_id: user.id,
+      backlog_id: backlogId || null,
       title: story.title,
       description: story.description,
       acceptance_criteria: story.acceptanceCriteria,

@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowUpDown, ArrowUp, ArrowDown, FileText, Sparkles, Loader2 } from 'lucide-react'
-import type { UserStory } from '@/lib/database.types'
+import type { UserStory, Backlog } from '@/lib/database.types'
 import type { UserStoryInput } from '@/lib/schemas/user-story'
 import type { User } from '@supabase/supabase-js'
 
@@ -23,6 +23,7 @@ interface EnhancedStoriesTableProps {
   isGenerating: boolean
   isGenerationComplete: boolean
   user: User | null
+  backlog?: Backlog | null
 }
 
 type SortField = 'title' | 'created_at' | 'status'
@@ -47,7 +48,8 @@ export default function EnhancedStoriesTable({
   generatingStories, 
   isGenerating, 
   isGenerationComplete,
-  user 
+  user,
+  backlog 
 }: EnhancedStoriesTableProps) {
   const [sortField, setSortField] = useState<SortField>('created_at')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
@@ -156,7 +158,7 @@ export default function EnhancedStoriesTable({
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <CardTitle className="flex items-center gap-2">
-                User Stories Backlog
+                {backlog ? `${backlog.name} - User Stories` : 'User Stories Backlog'}
                 {isGenerating && (
                   <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
                 )}

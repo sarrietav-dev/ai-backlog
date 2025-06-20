@@ -9,9 +9,11 @@ import { experimental_useObject as useObject } from '@ai-sdk/react'
 import { userStoriesResponseSchema, type UserStoriesResponse, type UserStoryInput } from '@/lib/schemas/user-story'
 import { toast } from 'sonner'
 import type { User } from '@supabase/supabase-js'
+import type { Backlog } from '@/lib/database.types'
 
 interface StoryGeneratorProps {
   user: User | null
+  backlog?: Backlog | null
   onGenerationStart?: () => void
   onStoriesUpdated?: (stories: UserStoryInput[]) => void
   onGenerationComplete?: () => void
@@ -20,6 +22,7 @@ interface StoryGeneratorProps {
 
 export default function StoryGenerator({ 
   user, 
+  backlog,
   onGenerationStart,
   onStoriesUpdated,
   onGenerationComplete,
@@ -74,7 +77,10 @@ export default function StoryGenerator({
       const response = await fetch('/api/save-stories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(lastGeneratedStories),
+        body: JSON.stringify({
+          ...lastGeneratedStories,
+          backlogId: backlog?.id
+        }),
       })
 
       const result = await response.json()

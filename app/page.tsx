@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import AuthButton from '@/components/auth/auth-button'
-import StoryManager from '@/components/story-manager'
+import BacklogManager from '@/components/backlog-manager'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Brain, Lightbulb } from 'lucide-react'
 
@@ -36,17 +36,17 @@ export default async function Home() {
           <div className="text-center space-y-4 py-8">
             <div className="space-y-2">
               <h2 className="text-3xl font-bold tracking-tight">
-                Transform Ideas into User Stories
+                Manage Multiple Product Backlogs with AI
               </h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Use AI to generate comprehensive user stories for your product backlog. 
-                Simply describe your idea and get professional, well-structured stories instantly.
+                Create multiple product backlogs, chat with AI about your ideas, and generate 
+                contextual user stories. Each backlog maintains its own conversation history.
               </p>
             </div>
           </div>
 
-          {/* Story Manager - handles both generation and display */}
-          <StoryManager user={user} />
+          {/* Backlog Manager - handles multiple backlogs with chat and stories */}
+          <BacklogManager user={user} />
 
           {/* Features Section */}
           <div className="grid md:grid-cols-2 gap-8 py-8">
@@ -54,18 +54,18 @@ export default async function Home() {
               <div className="w-12 h-12 bg-primary/10 rounded-lg mx-auto flex items-center justify-center">
                 <Brain className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="font-semibold">AI-Generated</h3>
+              <h3 className="font-semibold">Contextual AI Chat</h3>
               <p className="text-sm text-muted-foreground">
-                Powered by GPT-4 to create comprehensive, well-structured user stories
+                Chat with AI about your product ideas. Each backlog remembers your conversation history.
               </p>
             </div>
             <div className="text-center space-y-2">
               <div className="w-12 h-12 bg-primary/10 rounded-lg mx-auto flex items-center justify-center">
                 <Lightbulb className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="font-semibold">MVP Focused</h3>
+              <h3 className="font-semibold">Multiple Backlogs</h3>
               <p className="text-sm text-muted-foreground">
-                Stories prioritized for minimum viable product development
+                Organize different products or features into separate backlogs with their own stories.
               </p>
             </div>
           </div>

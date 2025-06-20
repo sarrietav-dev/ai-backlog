@@ -5,14 +5,15 @@ import { createClient } from '@/lib/supabase/client'
 import StoryGenerator from '@/components/story-generator'
 import EnhancedStoriesTable from '@/components/enhanced-stories-table'
 import type { User } from '@supabase/supabase-js'
-import type { UserStory } from '@/lib/database.types'
+import type { UserStory, Backlog } from '@/lib/database.types'
 import type { UserStoryInput } from '@/lib/schemas/user-story'
 
 interface StoryManagerProps {
   user: User | null
+  backlog?: Backlog | null
 }
 
-export default function StoryManager({ user }: StoryManagerProps) {
+export default function StoryManager({ user, backlog }: StoryManagerProps) {
   const [savedStories, setSavedStories] = useState<UserStory[]>([])
   const [generatingStories, setGeneratingStories] = useState<UserStoryInput[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
@@ -26,18 +27,27 @@ export default function StoryManager({ user }: StoryManagerProps) {
     } else {
       setLoading(false)
     }
-  }, [user])
+  }, [user, backlog?.id])
 
   const loadUserStories = async () => {
     if (!user) return
 
     try {
       const supabase = createClient()
-      const { data: stories, error } = await supabase
+      let query = supabase
         .from('user_stories')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+
+      // If backlog is specified, filter by backlog_id
+      if (backlog) {
+        query = query.eq('backlog_id', backlog.id)
+      } else {
+        // If no backlog specified, show stories without backlog (for backwards compatibility)
+        query = query.is('backlog_id', null)
+      }
+
+      const { data: stories, error } = await query.order('created_at', { ascending: false })
 
       if (error) {
         console.error('Error fetching stories:', error)
@@ -96,6 +106,7 @@ export default function StoryManager({ user }: StoryManagerProps) {
       {/* Story Generator */}
       <StoryGenerator 
         user={user} 
+        backlog={backlog}
         onGenerationStart={handleGenerationStart}
         onStoriesUpdated={handleStoriesUpdated}
         onGenerationComplete={handleGenerationComplete}
@@ -109,6 +120,7 @@ export default function StoryManager({ user }: StoryManagerProps) {
         isGenerating={isGenerating}
         isGenerationComplete={isGenerationComplete}
         user={user}
+        backlog={backlog}
       />
     </div>
   )
