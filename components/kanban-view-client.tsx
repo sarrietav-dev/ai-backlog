@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -60,8 +60,25 @@ const statusConfig = {
 
 export default function KanbanViewClient({ stories, backlog, user, onStoryUpdate }: KanbanViewClientProps) {
   const [updatingStory, setUpdatingStory] = useState<string | null>(null)
+  const [optimisticUpdates, setOptimisticUpdates] = useState<Record<string, Status>>({})
 
-  // Group stories by status
+  // Clean up optimistic updates when stories change (parent component refresh)
+  useEffect(() => {
+    setOptimisticUpdates(prev => {
+      const storyIds = new Set(stories.map(story => story.id))
+      const filtered: Record<string, Status> = {}
+      
+      Object.entries(prev).forEach(([storyId, status]) => {
+        if (storyIds.has(storyId)) {
+          filtered[storyId] = status
+        }
+      })
+      
+      return filtered
+    })
+  }, [stories])
+
+  // Group stories by status, applying optimistic updates
   const groupedStories = useMemo(() => {
     const groups = {
       backlog: [] as UserStory[],
@@ -70,18 +87,31 @@ export default function KanbanViewClient({ stories, backlog, user, onStoryUpdate
     }
 
     stories.forEach(story => {
-      const status = story.status as Status
+      // Use optimistic status if available, otherwise use actual status
+      const status = (optimisticUpdates[story.id] || story.status) as Status
       if (groups[status]) {
-        groups[status].push(story)
+        groups[status].push({
+          ...story,
+          status: status as 'backlog' | 'in_progress' | 'done'
+        })
       }
     })
 
     return groups
-  }, [stories])
+  }, [stories, optimisticUpdates])
 
-  const updateStoryStatus = async (storyId: string, newStatus: Status) => {
+  const updateStoryStatus = async (storyId: string, newStatus: Status, isOptimistic = false) => {
     if (!user) {
       toast.error('Please sign in to update stories')
+      return
+    }
+
+    // For optimistic updates, apply immediately without API call
+    if (isOptimistic) {
+      setOptimisticUpdates(prev => ({
+        ...prev,
+        [storyId]: newStatus
+      }))
       return
     }
 
@@ -99,13 +129,25 @@ export default function KanbanViewClient({ stories, backlog, user, onStoryUpdate
       const result = await response.json()
 
       if (response.ok) {
+        // Clear optimistic update and refresh data
+        setOptimisticUpdates(prev => {
+          const { [storyId]: removed, ...rest } = prev
+          return rest
+        })
         toast.success('Story status updated!')
         onStoryUpdate()
       } else {
         throw new Error(result.error || 'Failed to update story')
       }
     } catch (error) {
-      toast.error('Failed to update story status')
+      // Rollback optimistic update on error
+      setOptimisticUpdates(prev => {
+        const { [storyId]: removed, ...rest } = prev
+        return rest
+      })
+      toast.error('Failed to update story status. Changes have been reverted.', {
+        description: 'Please try again or check your connection.'
+      })
       console.error('Update error:', error)
     } finally {
       setUpdatingStory(null)
@@ -129,12 +171,19 @@ export default function KanbanViewClient({ stories, backlog, user, onStoryUpdate
     // Extract the actual story ID from the draggable ID (remove "story-" prefix)
     const storyId = draggableId.replace('story-', '')
     const newStatus = destination.droppableId as Status
-    updateStoryStatus(storyId, newStatus)
+
+    // Apply optimistic update immediately for instant UI feedback
+    updateStoryStatus(storyId, newStatus, true)
+
+    // Then perform the actual API call
+    updateStoryStatus(storyId, newStatus, false)
   }
 
   const StoryCard = ({ story, index }: { story: UserStory; index: number }) => {
     // Create a unique draggable ID to avoid conflicts
     const draggableId = `story-${story.id}`
+    const isOptimistic = optimisticUpdates[story.id] !== undefined
+    const isUpdating = updatingStory === story.id
     
     return (
       <Draggable draggableId={draggableId} index={index} isDragDisabled={!user}>
@@ -146,7 +195,9 @@ export default function KanbanViewClient({ stories, backlog, user, onStoryUpdate
             className={`mb-3 transition-all duration-200 hover:shadow-md ${
               snapshot.isDragging ? 'rotate-1 shadow-lg' : ''
             } ${
-              updatingStory === story.id ? 'opacity-50' : ''
+              isUpdating ? 'opacity-50' : ''
+            } ${
+              isOptimistic ? 'ring-2 ring-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20' : ''
             } ${
               !user ? 'cursor-not-allowed opacity-60' : 'cursor-grab active:cursor-grabbing'
             }`}
@@ -164,20 +215,29 @@ export default function KanbanViewClient({ stories, backlog, user, onStoryUpdate
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
-                      onClick={() => updateStoryStatus(story.id, 'backlog')}
-                      disabled={story.status === 'backlog' || !user}
+                      onClick={() => {
+                        updateStoryStatus(story.id, 'backlog', true)
+                        updateStoryStatus(story.id, 'backlog', false)
+                      }}
+                      disabled={story.status === 'backlog' || !user || isUpdating}
                     >
                       Move to Backlog
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => updateStoryStatus(story.id, 'in_progress')}
-                      disabled={story.status === 'in_progress' || !user}
+                      onClick={() => {
+                        updateStoryStatus(story.id, 'in_progress', true)
+                        updateStoryStatus(story.id, 'in_progress', false)
+                      }}
+                      disabled={story.status === 'in_progress' || !user || isUpdating}
                     >
                       Move to In Progress
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => updateStoryStatus(story.id, 'done')}
-                      disabled={story.status === 'done' || !user}
+                      onClick={() => {
+                        updateStoryStatus(story.id, 'done', true)
+                        updateStoryStatus(story.id, 'done', false)
+                      }}
+                      disabled={story.status === 'done' || !user || isUpdating}
                     >
                       Move to Done
                     </DropdownMenuItem>
@@ -206,9 +266,17 @@ export default function KanbanViewClient({ stories, backlog, user, onStoryUpdate
                   <Calendar className="h-3 w-3" />
                   {new Date(story.created_at).toLocaleDateString()}
                 </div>
-                {updatingStory === story.id && (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                )}
+                <div className="flex items-center gap-1">
+                  {isOptimistic && !isUpdating && (
+                    <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                      <span className="text-xs">Saving...</span>
+                    </div>
+                  )}
+                  {isUpdating && (
+                    <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
